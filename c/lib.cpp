@@ -275,14 +275,14 @@ USEARCH_EXPORT bool usearch_contains(usearch_index_t index, usearch_label_t labe
 
 USEARCH_EXPORT size_t usearch_search(                                                            //
     usearch_index_t index, void const* vector, usearch_scalar_kind_t kind, size_t results_limit, //
-    usearch_label_t* found_labels, usearch_distance_t* found_distances, usearch_error_t* error) {
+    usearch_label_t* found_labels, usearch_distance_t* found_distances, size_t* tuple_pointers, usearch_error_t* error) {
     search_result_t result = search_(reinterpret_cast<index_t*>(index), vector, to_native_scalar(kind), results_limit);
     if (!result) {
         *error = result.error.what();
         return 0;
     }
 
-    return result.dump_to(found_labels, found_distances);
+    return result.dump_to(found_labels, found_distances, tuple_pointers);
 }
 
 #if USEARCH_LOOKUP_LABEL

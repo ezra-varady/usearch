@@ -1724,7 +1724,7 @@ class index_gt {
     /**
      *  @brief  How many bytes of memory are needed to form the "head" of the node.
      */
-    static constexpr std::size_t node_head_bytes_() { return sizeof(label_t) + sizeof(dim_t) + sizeof(level_t); }
+    static constexpr std::size_t node_head_bytes_() { return sizeof(label_t) + sizeof(dim_t) + sizeof(level_t) + sizeof(std::size_t); }
 
     using visits_bitset_t = visits_bitset_gt<dynamic_allocator_t>;
 
@@ -1764,10 +1764,12 @@ class index_gt {
         misaligned_ref_gt<label_t> label() const noexcept { return {tape_}; }
         misaligned_ref_gt<dim_t> dim() const noexcept { return {tape_ + sizeof(label_t)}; }
         misaligned_ref_gt<level_t> level() const noexcept { return {tape_ + sizeof(label_t) + sizeof(dim_t)}; }
+        misaligned_ref_gt<std::size_t> index_tuple() const noexcept { return {tape_ + sizeof(label_t) + sizeof(dim_t) + sizeof(level_t)}; }
 
         void label(label_t v) noexcept { return misaligned_store<label_t>(tape_, v); }
         void dim(dim_t v) noexcept { return misaligned_store<dim_t>(tape_ + sizeof(label_t), v); }
         void level(level_t v) noexcept { return misaligned_store<level_t>(tape_ + sizeof(label_t) + sizeof(dim_t), v); }
+        void index_tuple(size_t v) noexcept { return misaligned_store<level_t>(tape_ + sizeof(label_t) + sizeof(dim_t) + sizeof(level_t), v); }
 
         operator vector_view_t() const noexcept { return {vector(), dim()}; }
         vector_view_t vector_view() const noexcept { return {vector(), dim()}; }
@@ -2109,6 +2111,7 @@ class index_gt {
     struct match_t {
         member_cref_t member;
         distance_t distance;
+        size_t tuple_ref;
     };
 
     class search_result_t {
@@ -2154,7 +2157,16 @@ class index_gt {
             candidate_t const* top_ordered = top_.data();
             candidate_t candidate = top_ordered[i];
             node_t node = index_.node_with_id_(candidate.id);
-            return {member_cref_t{node.label(), node.vector_view(), candidate.id}, candidate.distance};
+            return {member_cref_t{node.label(), node.vector_view(), candidate.id}, candidate.distance, node.index_tuple()};
+        }
+        inline std::size_t dump_to(label_t* labels, distance_t* distances, std::size_t* index_tuples) const noexcept {
+            for (std::size_t i = 0; i != count; ++i) {
+                match_t result = operator[](i);
+                labels[i] = result.member.label;
+                distances[i] = result.distance;
+                index_tuples[i] = result.tuple_ref;
+            }
+            return count;
         }
         inline std::size_t dump_to(label_t* labels, distance_t* distances) const noexcept {
             for (std::size_t i = 0; i != count; ++i) {

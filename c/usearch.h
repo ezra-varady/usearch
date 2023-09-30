@@ -103,9 +103,9 @@ USEARCH_EXPORT bool usearch_contains(usearch_index_t, usearch_label_t, usearch_e
  *  @brief      Performs k-Approximate Nearest Neighbors Search.
  *  @return     Number of found matches.
  */
-USEARCH_EXPORT size_t usearch_search(                                                                  //
-    usearch_index_t, void const* query_vector, usearch_scalar_kind_t query_kind, size_t results_limit, //
-    usearch_label_t* found_labels, usearch_distance_t* found_distances, usearch_error_t*);
+USEARCH_EXPORT size_t usearch_search(                                                            //
+    usearch_index_t index, void const* vector, usearch_scalar_kind_t kind, size_t results_limit, //
+    usearch_label_t* found_labels, usearch_distance_t* found_distances, size_t* tuple_pointers, usearch_error_t* error);
 
 USEARCH_EXPORT bool usearch_get(      //
     usearch_index_t, usearch_label_t, //
